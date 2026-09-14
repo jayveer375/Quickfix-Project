@@ -1,0 +1,588 @@
+{% extends "base_saas.html" %}
+
+{% block title %}Manage Cities & Areas - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Responsive Styles for Admin Cities Page */
+    @media (max-width: 768px) {
+        .admin-header h1 {
+            font-size: 1.75rem !important;
+        }
+        
+        .admin-header > div {
+            flex-direction: column !important;
+            gap: 0.75rem !important;
+        }
+        
+        .admin-header > div > div {
+            width: 100%;
+            text-align: center;
+        }
+        
+        /* Add City Form - Stack on mobile */
+        .add-city-form {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .add-city-form button {
+            width: 100%;
+        }
+        
+        /* City Card Actions */
+        .city-header-actions {
+            flex-direction: column !important;
+            width: 100%;
+            gap: 0.5rem !important;
+        }
+        
+        .city-header-actions button,
+        .city-header-actions form {
+            width: 100%;
+        }
+        
+        .city-header-actions button {
+            justify-content: center;
+        }
+        
+        /* Add Area Form - Stack on mobile */
+        .add-area-form {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .add-area-form button {
+            width: 100%;
+        }
+        
+        /* Areas Grid - Single column on mobile */
+        .areas-grid {
+            grid-template-columns: 1fr !important;
+        }
+        
+        /* Area Item - Stack content */
+        .area-item {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+        }
+        
+        .area-item-actions {
+            width: 100%;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .area-item-actions button,
+        .area-item-actions form {
+            flex: 1;
+        }
+        
+        /* City Card Header */
+        .city-card-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .admin-container {
+            padding: 1rem !important;
+        }
+        
+        .admin-header h1 {
+            font-size: 1.5rem !important;
+        }
+        
+        .card {
+            padding: 1rem !important;
+        }
+        
+        .city-card {
+            padding: 1rem !important;
+        }
+        
+        /* Smaller buttons on mobile */
+        .btn {
+            padding: 0.6rem 1rem !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.85rem !important;
+        }
+        
+        /* Modal adjustments */
+        .modal-content-wrapper {
+            padding: 1.5rem !important;
+            width: 95% !important;
+        }
+    }
+    
+    /* Touch-friendly buttons */
+    @media (hover: none) and (pointer: coarse) {
+        .btn, button {
+            min-height: 44px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section style="padding: 2rem; background: white; min-height: 100vh;">
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <h1><i class="fas fa-map-marker-alt"></i> Manage Cities & Areas</h1>
+            <p style="color: #6b7280; margin-top: 0.5rem;">Add and manage cities and their areas</p>
+            <div style="margin-top: 1rem; display: flex; gap: 1.5rem;">
+                <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600;">
+                    <i class="fas fa-city"></i> {{ cities|length }} Cities
+                </div>
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600;">
+                    <i class="fas fa-map-pin"></i> {% set total_areas = namespace(count=0) %}{% for city in cities %}{% set total_areas.count = total_areas.count + city.areas.count() %}{% endfor %}{{ total_areas.count }} Areas
+                </div>
+            </div>
+        </div>
+
+        <!-- Add City Form -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <h3 class="card-title" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-plus-circle" style="color: #6366f1;"></i>
+                Add New City
+            </h3>
+            <form method="POST" action="{{ url_for('admin.add_city') }}" class="add-city-form" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;">
+                <div>
+                    <label for="city_name" style="display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 600; font-size: 0.9rem;">
+                        <i class="fas fa-city" style="color: #6366f1; margin-right: 0.25rem;"></i>
+                        City Name *
+                    </label>
+                    <input 
+                        type="text" 
+                        id="city_name" 
+                        name="name" 
+                        required 
+                        class="form-control" 
+                        placeholder="e.g., Ahmedabad"
+                        style="
+                            width: 100%;
+                            padding: 0.75rem 1rem;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 0.5rem;
+                            font-size: 0.95rem;
+                            transition: all 0.3s ease;
+                            background: white;
+                        "
+                        onfocus="this.style.borderColor='#6366f1'; this.style.boxShadow='0 0 0 3px rgba(99, 102, 241, 0.1)'"
+                        onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'"
+                    >
+                </div>
+                <div>
+                    <label for="state" style="display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 600; font-size: 0.9rem;">
+                        <i class="fas fa-map" style="color: #10b981; margin-right: 0.25rem;"></i>
+                        State (Optional)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="state" 
+                        name="state" 
+                        class="form-control" 
+                        placeholder="e.g., Gujarat"
+                        style="
+                            width: 100%;
+                            padding: 0.75rem 1rem;
+                            border: 2px solid #e5e7eb;
+                            border-radius: 0.5rem;
+                            font-size: 0.95rem;
+                            transition: all 0.3s ease;
+                            background: white;
+                        "
+                        onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'"
+                        onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'"
+                    >
+                </div>
+                <button type="submit" class="btn btn-primary" style="
+                    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+                "
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px -2px rgba(99, 102, 241, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(99, 102, 241, 0.3)'"
+                >
+                    <i class="fas fa-plus"></i> Add City
+                </button>
+            </form>
+        </div>
+
+        <!-- Cities List -->
+        <div class="card">
+            <h3 class="card-title" style="margin-bottom: 1.5rem;">Cities & Areas</h3>
+            
+            {% if cities %}
+                <div style="display: grid; gap: 1.5rem;">
+                    {% for city in cities %}
+                    <div class="city-card" style="border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1.5rem; background: #f9fafb;">
+                        <!-- City Header -->
+                        <div class="city-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid #e5e7eb;">
+                            <div>
+                                <h4 style="font-size: 1.25rem; font-weight: 700; color: #1f2937; margin: 0;">
+                                    <i class="fas fa-city" style="color: #6366f1;"></i> {{ city.name }}
+                                </h4>
+                                {% if city.state %}
+                                <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.9rem;">{{ city.state }}</p>
+                                {% endif %}
+                                <p style="color: #9ca3af; margin: 0.25rem 0 0 0; font-size: 0.85rem;">
+                                    {{ city.areas.count() }} area(s)
+                                </p>
+                            </div>
+                            <div class="city-header-actions" style="display: flex; gap: 0.5rem;">
+                                <button onclick="editCity({{ city.id }}, '{{ city.name }}', '{{ city.state or '' }}')" class="btn btn-sm" style="background: #3b82f6; color: white;">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button onclick="toggleAreas({{ city.id }})" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-plus"></i> Add Area
+                                </button>
+                                <form method="POST" action="{{ url_for('admin.delete_city', city_id=city.id) }}" style="display: inline;" onsubmit="return confirm('Delete {{ city.name }} and all its areas?');">
+                                    <button type="submit" class="btn btn-sm" style="background: #ef4444; color: white;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Add Area Form (Hidden by default) -->
+                        <div id="add-area-{{ city.id }}" style="display: none; margin-bottom: 1rem; padding: 1.25rem; background: white; border-radius: 0.5rem; border: 2px solid #e5e7eb; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                            <h5 style="margin-bottom: 1rem; color: #374151; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fas fa-map-pin" style="color: #6366f1;"></i>
+                                Add New Area to {{ city.name }}
+                            </h5>
+                            <form method="POST" action="{{ url_for('admin.add_area') }}" class="add-area-form" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; align-items: end;">
+                                <input type="hidden" name="city_id" value="{{ city.id }}">
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.4rem; color: #374151; font-size: 0.875rem; font-weight: 600;">
+                                        <i class="fas fa-location-dot" style="color: #6366f1; font-size: 0.75rem;"></i>
+                                        Area Name *
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="name" 
+                                        required 
+                                        class="form-control" 
+                                        placeholder="e.g., Maninagar"
+                                        style="
+                                            width: 100%;
+                                            padding: 0.65rem 0.9rem;
+                                            border: 2px solid #e5e7eb;
+                                            border-radius: 0.5rem;
+                                            font-size: 0.9rem;
+                                            transition: all 0.3s ease;
+                                            background: white;
+                                        "
+                                        onfocus="this.style.borderColor='#6366f1'; this.style.boxShadow='0 0 0 3px rgba(99, 102, 241, 0.1)'"
+                                        onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'"
+                                    >
+                                </div>
+                                <div>
+                                    <label style="display: block; margin-bottom: 0.4rem; color: #374151; font-size: 0.875rem; font-weight: 600;">
+                                        <i class="fas fa-hashtag" style="color: #10b981; font-size: 0.75rem;"></i>
+                                        Pincode (Optional)
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        name="pincode" 
+                                        class="form-control" 
+                                        placeholder="e.g., 380008"
+                                        style="
+                                            width: 100%;
+                                            padding: 0.65rem 0.9rem;
+                                            border: 2px solid #e5e7eb;
+                                            border-radius: 0.5rem;
+                                            font-size: 0.9rem;
+                                            transition: all 0.3s ease;
+                                            background: white;
+                                        "
+                                        onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'"
+                                        onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'"
+                                    >
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm" style="
+                                    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                                    color: white;
+                                    border: none;
+                                    padding: 0.65rem 1.25rem;
+                                    border-radius: 0.5rem;
+                                    font-weight: 600;
+                                    font-size: 0.9rem;
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 0.4rem;
+                                    cursor: pointer;
+                                    transition: all 0.3s ease;
+                                    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+                                "
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(99, 102, 241, 0.4)'"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(99, 102, 241, 0.3)'"
+                                >
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Areas List -->
+                        {% if city.areas.count() > 0 %}
+                        <div class="areas-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.75rem;">
+                            {% for area in city.areas.order_by('name') %}
+                            <div class="area-item" style="background: white; padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <p style="margin: 0; font-weight: 600; color: #1f2937;">{{ area.name }}</p>
+                                    {% if area.pincode %}
+                                    <p style="margin: 0; font-size: 0.85rem; color: #6b7280;">PIN: {{ area.pincode }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="area-item-actions" style="display: flex; gap: 0.25rem;">
+                                    <button onclick="editArea({{ area.id }}, '{{ area.name }}', '{{ area.pincode or '' }}')" class="btn btn-sm" style="padding: 0.25rem 0.5rem; background: #3b82f6; color: white; font-size: 0.8rem;">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form method="POST" action="{{ url_for('admin.delete_area', area_id=area.id) }}" style="display: inline;" onsubmit="return confirm('Delete {{ area.name }}?');">
+                                        <button type="submit" class="btn btn-sm" style="padding: 0.25rem 0.5rem; background: #ef4444; color: white; font-size: 0.8rem;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p style="color: #9ca3af; font-style: italic; margin: 0;">No areas added yet. Click "Add Area" to add one.</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: #6b7280; text-align: center; padding: 2rem;">No cities added yet. Add your first city above.</p>
+            {% endif %}
+        </div>
+
+        <!-- Back Button -->
+        <div style="margin-top: 2rem;">
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Edit City Modal -->
+<div id="editCityModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div class="modal-content-wrapper" style="background: white; padding: 2rem; border-radius: 1rem; max-width: 500px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-bottom: 1.5rem; color: #1f2937; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-edit" style="color: #6366f1;"></i>
+            Edit City
+        </h3>
+        <form id="editCityForm" method="POST">
+            <div style="margin-bottom: 1.25rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 600; font-size: 0.9rem;">
+                    <i class="fas fa-city" style="color: #6366f1; margin-right: 0.25rem;"></i>
+                    City Name *
+                </label>
+                <input 
+                    type="text" 
+                    id="edit_city_name" 
+                    name="name" 
+                    required 
+                    class="form-control"
+                    style="
+                        width: 100%;
+                        padding: 0.75rem 1rem;
+                        border: 2px solid #e5e7eb;
+                        border-radius: 0.5rem;
+                        font-size: 0.95rem;
+                        transition: all 0.3s ease;
+                        background: white;
+                    "
+                    onfocus="this.style.borderColor='#6366f1'; this.style.boxShadow='0 0 0 3px rgba(99, 102, 241, 0.1)'"
+                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'"
+                >
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 600; font-size: 0.9rem;">
+                    <i class="fas fa-map" style="color: #10b981; margin-right: 0.25rem;"></i>
+                    State
+                </label>
+                <input 
+                    type="text" 
+                    id="edit_city_state" 
+                    name="state" 
+                    class="form-control"
+                    style="
+                        width: 100%;
+                        padding: 0.75rem 1rem;
+                        border: 2px solid #e5e7eb;
+                        border-radius: 0.5rem;
+                        font-size: 0.95rem;
+                        transition: all 0.3s ease;
+                        background: white;
+                    "
+                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'"
+                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'"
+                >
+            </div>
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" onclick="closeEditCity()" class="btn btn-secondary" style="
+                    padding: 0.65rem 1.25rem;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                ">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="
+                    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                    color: white;
+                    border: none;
+                    padding: 0.65rem 1.5rem;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+                "
+                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 12px -2px rgba(99, 102, 241, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(99, 102, 241, 0.3)'"
+                >Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Area Modal -->
+<div id="editAreaModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 1rem;">
+    <div class="modal-content-wrapper" style="background: white; padding: 2rem; border-radius: 1rem; max-width: 500px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); max-height: 90vh; overflow-y: auto;">
+        <h3 style="margin-bottom: 1.5rem; color: #1f2937; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-edit" style="color: #6366f1;"></i>
+            Edit Area
+        </h3>
+        <form id="editAreaForm" method="POST">
+            <div style="margin-bottom: 1.25rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 600; font-size: 0.9rem;">
+                    <i class="fas fa-location-dot" style="color: #6366f1; margin-right: 0.25rem;"></i>
+                    Area Name *
+                </label>
+                <input 
+                    type="text" 
+                    id="edit_area_name" 
+                    name="name" 
+                    required 
+                    class="form-control"
+                    style="
+                        width: 100%;
+                        padding: 0.75rem 1rem;
+                        border: 2px solid #e5e7eb;
+                        border-radius: 0.5rem;
+                        font-size: 0.95rem;
+                        transition: all 0.3s ease;
+                        background: white;
+                    "
+                    onfocus="this.style.borderColor='#6366f1'; this.style.boxShadow='0 0 0 3px rgba(99, 102, 241, 0.1)'"
+                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'"
+                >
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; color: #374151; font-weight: 600; font-size: 0.9rem;">
+                    <i class="fas fa-hashtag" style="color: #10b981; margin-right: 0.25rem;"></i>
+                    Pincode
+                </label>
+                <input 
+                    type="text" 
+                    id="edit_area_pincode" 
+                    name="pincode" 
+                    class="form-control"
+                    style="
+                        width: 100%;
+                        padding: 0.75rem 1rem;
+                        border: 2px solid #e5e7eb;
+                        border-radius: 0.5rem;
+                        font-size: 0.95rem;
+                        transition: all 0.3s ease;
+                        background: white;
+                    "
+                    onfocus="this.style.borderColor='#10b981'; this.style.boxShadow='0 0 0 3px rgba(16, 185, 129, 0.1)'"
+                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'"
+                >
+            </div>
+            <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <button type="button" onclick="closeEditArea()" class="btn btn-secondary" style="
+                    padding: 0.65rem 1.25rem;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                ">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="
+                    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                    color: white;
+                    border: none;
+                    padding: 0.65rem 1.5rem;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+                "
+                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 12px -2px rgba(99, 102, 241, 0.4)'"
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px -1px rgba(99, 102, 241, 0.3)'"
+                >Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleAreas(cityId) {
+        const areaForm = document.getElementById('add-area-' + cityId);
+        if (areaForm.style.display === 'none') {
+            areaForm.style.display = 'block';
+        } else {
+            areaForm.style.display = 'none';
+        }
+    }
+
+    function editCity(cityId, name, state) {
+        document.getElementById('edit_city_name').value = name;
+        document.getElementById('edit_city_state').value = state;
+        document.getElementById('editCityForm').action = "{{ url_for('admin.edit_city', city_id=0) }}".replace('0', cityId);
+        document.getElementById('editCityModal').style.display = 'flex';
+    }
+
+    function closeEditCity() {
+        document.getElementById('editCityModal').style.display = 'none';
+    }
+
+    function editArea(areaId, name, pincode) {
+        document.getElementById('edit_area_name').value = name;
+        document.getElementById('edit_area_pincode').value = pincode;
+        document.getElementById('editAreaForm').action = "{{ url_for('admin.edit_area', area_id=0) }}".replace('0', areaId);
+        document.getElementById('editAreaModal').style.display = 'flex';
+    }
+
+    function closeEditArea() {
+        document.getElementById('editAreaModal').style.display = 'none';
+    }
+
+    // Close modals when clicking outside
+    document.getElementById('editCityModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditCity();
+    });
+
+    document.getElementById('editAreaModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditArea();
+    });
+</script>
+
+{% endblock %}

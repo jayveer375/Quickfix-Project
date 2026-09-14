@@ -1,0 +1,2 @@
+Skipping instance/database_backup.db: database disk image is malformed
+ERROR: No readable source database found.

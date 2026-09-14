@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="QuickFix - Modern SaaS platform for finding premium service providers near you.">
+    <meta name="theme-color" content="#6366f1">
+    <title>{% block title %}QuickFix - Modern SaaS Platform{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/saas.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--dark);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        body.dark-mode .mobile-menu-toggle {
+            color: var(--dark-text);
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .navbar-menu {
+                display: none;
+                position: fixed;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background: white;
+                flex-direction: column !important;
+                padding: 1.5rem;
+                gap: 1rem !important;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                z-index: 1000;
+                border-bottom: 1px solid var(--gray-light);
+                list-style: none;
+            }
+
+            body.dark-mode .navbar-menu {
+                background: var(--dark-card);
+                border-bottom-color: var(--dark-border);
+            }
+
+            .navbar-menu.active {
+                display: flex !important;
+            }
+
+            .navbar-menu li {
+                width: 100%;
+            }
+
+            .navbar-menu a {
+                display: block;
+                padding: 0.75rem;
+                border-bottom: 1px solid var(--gray-light);
+                text-align: center;
+            }
+
+            body.dark-mode .navbar-menu a {
+                border-bottom-color: var(--dark-border);
+            }
+
+            .navbar-menu li:last-child a {
+                border-bottom: none;
+            }
+        }
+
+        /* Touch-friendly buttons */
+        @media (hover: none) and (pointer: coarse) {
+            .btn, button, a {
+                min-height: 44px;
+                min-width: 44px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container" style="position: relative;">
+            <a href="{{ url_for('index') }}" class="navbar-brand">
+                <i class="fas fa-rocket"></i> QuickFix
+            </a>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <ul class="navbar-menu" id="navbarMenu">
+                <li><a href="{{ url_for('index') }}" class="navbar-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                <li><a href="{{ url_for('user.search') }}" class="navbar-link {% if request.endpoint and ('user.search' in request.endpoint or 'user.provider_profile' in request.endpoint or 'user.service_detail' in request.endpoint) %}active{% endif %}">Services</a></li>
+                
+                {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin() %}
+                        <li><a href="{{ url_for('admin.dashboard') }}" class="navbar-link {% if request.endpoint and 'admin' in request.endpoint %}active{% endif %}">Admin</a></li>
+                    {% elif current_user.is_provider() %}
+                        <li><a href="{{ url_for('provider.dashboard') }}" class="navbar-link {% if request.endpoint and 'provider' in request.endpoint %}active{% endif %}">Dashboard</a></li>
+                    {% endif %}
+                    <li><a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm">Logout</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm">Login</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">Sign Up</a></li>
+                {% endif %}
+                
+                <li><button class="theme-toggle" title="Toggle Dark Mode">🌙</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} flash-message" style="
+                    position: fixed;
+                    top: 80px;
+                    right: 20px;
+                    background: var(--dark-card, white);
+                    color: var(--dark-text, #1f2937);
+                    border-left: 4px solid;
+                    border-color: {% if category == 'success' %}#10b981{% elif category == 'error' %}#ef4444{% else %}#f59e0b{% endif %};
+                    padding: 1rem 1.5rem;
+                    border-radius: 0.5rem;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                    z-index: 1001;
+                    animation: slideInRight 0.5s ease;
+                    max-width: 400px;
+                    transition: opacity 0.5s ease, transform 0.5s ease;
+                    border: 1px solid var(--dark-border, #e5e7eb);
+                ">
+                    {{ message }}
+                </div>
+            {% endfor %}
+            <script>
+                // Auto-dismiss flash messages after 2 seconds
+                document.addEventListener('DOMContentLoaded', function() {
+                    const flashMessages = document.querySelectorAll('.flash-message');
+                    flashMessages.forEach(function(message) {
+                        setTimeout(function() {
+                            message.style.opacity = '0';
+                            message.style.transform = 'translateX(100%)';
+                            setTimeout(function() {
+                                message.remove();
+                            }, 500);
+                        }, 2000);
+                    });
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Emergency Button -->
+    <button class="emergency-btn" title="OUR HELPLINE" style="background: #10b981 !important;">
+        <i class="fas fa-phone"></i>
+    </button>
+
+    <!-- Emergency Modal -->
+    <div class="modal emergency-modal">
+        <div class="modal-content" style="max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid #e5e7eb;">
+                <h2 class="modal-title" style="margin: 0; font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                    📞 OUR HELPLINE
+                </h2>
+                <button class="modal-close emergency-close" style="background: none; border: none; font-size: 2rem; cursor: pointer; color: #6b7280; line-height: 1; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">&times;</button>
+            </div>
+            <p style="margin-bottom: 1.5rem; color: #000000; font-size: 1.1rem; font-weight: 500; text-align: center;">Contact QuickFix for immediate assistance</p>
+            
+            <!-- Contact Information -->
+            <div class="helpline-contacts" style="background: #f8f9fa; padding: 1.5rem; border-radius: 1rem; margin-bottom: 1.5rem; border: 1px solid #e9ecef;">
+                <div style="display: grid; gap: 1rem;">
+                    <!-- Phone Numbers -->
+                    <div class="contact-item" style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: white; border-radius: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <i class="fas fa-phone" style="color: #10b981; width: 24px; font-size: 1.3rem; flex-shrink: 0;"></i>
+                        <div style="flex: 1; min-width: 0;">
+                            <a href="tel:8849954610" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 1.2rem; display: block; word-break: break-all;">
+                                📱 +91 88499 54610
+                            </a>
+                            <p style="margin: 0; font-size: 0.95rem; color: #000000; font-weight: 500;">Primary Contact</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Toll Free Number -->
+                    <div class="contact-item" style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: white; border-radius: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <i class="fas fa-phone" style="color: #10b981; width: 24px; font-size: 1.3rem; flex-shrink: 0;"></i>
+                        <div style="flex: 1; min-width: 0;">
+                            <a href="tel:18001234567" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 1.2rem; display: block; word-break: break-all;">
+                                📞 1800-123-4567
+                            </a>
+                            <p style="margin: 0; font-size: 0.95rem; color: #000000; font-weight: 500;">Toll Free (24/7)</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="contact-item" style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: white; border-radius: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <i class="fas fa-envelope" style="color: #10b981; width: 24px; font-size: 1.3rem; flex-shrink: 0;"></i>
+                        <div style="flex: 1; min-width: 0;">
+                            <a href="mailto:hetthakker0101@gmail.com" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 1.1rem; display: block; word-break: break-all;">
+                                ✉️ hetthakker0101@gmail.com
+                            </a>
+                            <p style="margin: 0; font-size: 0.95rem; color: #000000; font-weight: 500;">Email Support</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Instagram -->
+                    <div class="contact-item" style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: white; border-radius: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <i class="fab fa-instagram" style="color: #10b981; width: 24px; font-size: 1.3rem; flex-shrink: 0;"></i>
+                        <div style="flex: 1; min-width: 0;">
+                            <a href="https://instagram.com/quickfix" target="_blank" style="color: #10b981; text-decoration: none; font-weight: 700; font-size: 1.2rem; display: block; word-break: break-all;">
+                                📸 @quickfix
+                            </a>
+                            <p style="margin: 0; font-size: 0.95rem; color: #000000; font-weight: 500;">Follow us on Instagram</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="emergency-providers grid grid-cols-1 gap-2">
+                <!-- Providers will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="
+        background: white;
+        border-top: 1px solid #e5e7eb;
+        padding: 2rem;
+        text-align: center;
+        color: #6b7280;
+        margin-top: 4rem;
+    ">
+        <div class="container">
+            <p>&copy; 2026 QuickFix. All rights reserved.</p>
+            <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+                Connecting you with premium services in your area
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="{{ url_for('static', filename='js/saas.js') }}"></script>
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const navbarMenu = document.getElementById('navbarMenu');
+            const menuIcon = document.querySelector('.mobile-menu-toggle i');
+            navbarMenu.classList.toggle('active');
+            
+            if (navbarMenu.classList.contains('active')) {
+                menuIcon.classList.remove('fa-bars');
+                menuIcon.classList.add('fa-times');
+            } else {
+                menuIcon.classList.remove('fa-times');
+                menuIcon.classList.add('fa-bars');
+            }
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navbarMenu = document.getElementById('navbarMenu');
+            const menuToggle = document.querySelector('.mobile-menu-toggle');
+            const navbar = document.querySelector('.navbar');
+            
+            if (navbarMenu && navbarMenu.classList.contains('active')) {
+                if (!navbar.contains(event.target)) {
+                    navbarMenu.classList.remove('active');
+                    const menuIcon = document.querySelector('.mobile-menu-toggle i');
+                    menuIcon.classList.remove('fa-times');
+                    menuIcon.classList.add('fa-bars');
+                }
+            }
+        });
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.navbar-menu a').forEach(link => {
+            link.addEventListener('click', function() {
+                const navbarMenu = document.getElementById('navbarMenu');
+                if (navbarMenu.classList.contains('active')) {
+                    navbarMenu.classList.remove('active');
+                    const menuIcon = document.querySelector('.mobile-menu-toggle i');
+                    menuIcon.classList.remove('fa-times');
+                    menuIcon.classList.add('fa-bars');
+                }
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

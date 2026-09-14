@@ -1,0 +1,134 @@
+{% extends "base_saas.html" %}
+
+{% block title %}Manage Providers - QuickFix{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 900; margin: 0;">All Service Providers</h1>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+
+    {% if providers %}
+        <div style="overflow-x: auto; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);">
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Profile</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Business Name</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Category</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Services</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Owner</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Area</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">City</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Approval</th>
+                        <th style="padding: 1rem; text-align: left; font-weight: 600;">Business Status</th>
+                        <th style="padding: 1rem; text-align: center; font-weight: 600;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for provider in providers %}
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); transition: background 0.2s;">
+                            <td style="padding: 1rem;">
+                                <div class="admin-profile-image" style="
+                                    width: 40px;
+                                    height: 40px;
+                                    border-radius: 50%;
+                                    border: 2px solid var(--primary);
+                                    overflow: hidden;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                                    transition: var(--transition);
+                                ">
+                                    <img src="{{ provider.user.get_profile_image_url() }}" 
+                                         alt="{{ provider.business_name }}" 
+                                         style="width: 100%; height: 100%; object-fit: cover;"
+                                         onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'">
+                                </div>
+                            </td>
+                            <td style="padding: 1rem;">{{ provider.business_name }}</td>
+                            <td style="padding: 1rem;">{{ provider.category.name }}</td>
+                            <td style="padding: 1rem;">
+                                {% if provider.services %}
+                                    <div style="display: flex; flex-wrap: wrap; gap: 0.3rem; max-width: 200px;">
+                                        {% for service in provider.services[:2] %}
+                                        <span style="
+                                            background: rgba(99, 102, 241, 0.2);
+                                            color: #6366f1;
+                                            padding: 0.2rem 0.5rem;
+                                            border-radius: 50px;
+                                            font-size: 0.7rem;
+                                            font-weight: 500;
+                                            white-space: nowrap;
+                                        ">{{ service.name }}</span>
+                                        {% endfor %}
+                                        {% if provider.services|length > 2 %}
+                                        <span style="
+                                            background: rgba(107, 114, 128, 0.2);
+                                            color: #6b7280;
+                                            padding: 0.2rem 0.5rem;
+                                            border-radius: 50px;
+                                            font-size: 0.7rem;
+                                            font-weight: 500;
+                                        ">+{{ provider.services|length - 2 }}</span>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <span style="color: #9ca3af; font-size: 0.85rem;">No services</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem;">{{ provider.user.name }}</td>
+                            <td style="padding: 1rem;">{{ provider.user.area or 'Not specified' }}</td>
+                            <td style="padding: 1rem;">{{ provider.city }}</td>
+                            <td style="padding: 1rem;">
+                                {% if provider.status == 'approved' %}
+                                    <span style="display: inline-block; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; background: rgba(34, 197, 94, 0.2); color: #22c55e;">APPROVED</span>
+                                {% elif provider.status == 'pending' %}
+                                    <span style="display: inline-block; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; background: rgba(251, 146, 60, 0.2); color: #fb923c;">PENDING</span>
+                                {% else %}
+                                    <span style="display: inline-block; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; background: rgba(239, 68, 68, 0.2); color: #ef4444;">REJECTED</span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem;">
+                                {% if provider.is_open %}
+                                    <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; background: rgba(34, 197, 94, 0.2); color: #22c55e;">
+                                        <span style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; display: inline-block;"></span>
+                                        OPEN
+                                    </span>
+                                {% else %}
+                                    <span style="display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; background: rgba(239, 68, 68, 0.2); color: #ef4444;">
+                                        <span style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: inline-block;"></span>
+                                        CLOSED
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td style="padding: 1rem; text-align: center;">
+                                <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                    {% if provider.status == 'pending' %}
+                                        <form method="POST" action="{{ url_for('admin.approve', provider_id=provider.id) }}" style="display:inline;">
+                                            <button type="submit" style="padding: 0.5rem 1rem; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(34,197,94,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">✓ Approve</button>
+                                        </form>
+                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('admin.delete_provider', provider_id=provider.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete {{ provider.business_name }}?');">
+                                        <button type="submit" style="padding: 0.5rem 1rem; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(239,68,68,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">🗑️ Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <p style="font-size: 1.1rem; color: #9ca3af;">No providers found.</p>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    table tbody tr:hover {
+        background: rgba(255,255,255,0.08) !important;
+    }
+</style>
+{% endblock %}
+    

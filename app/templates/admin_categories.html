@@ -1,0 +1,71 @@
+{% extends "base_saas.html" %}
+
+{% block title %}Manage Categories - QuickFix{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 900; margin: 0;">Manage Categories</h1>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+
+    <!-- Add New Category Section -->
+    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 2rem; margin-bottom: 2rem; backdrop-filter: blur(10px);">
+        <h2 style="font-size: 1.3rem; font-weight: 700; margin-top: 0;">Add New Category</h2>
+        <form method="POST" action="{{ url_for('admin.add_category') }}" style="display: grid; gap: 1rem;">
+            <div>
+                <label for="name" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Category Name *</label>
+                <input type="text" id="name" name="name" required style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-size: 1rem;" placeholder="Enter category name">
+            </div>
+
+            <div>
+                <label for="description" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Description</label>
+                <textarea id="description" name="description" rows="3" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; color: white; font-size: 1rem; font-family: inherit;" placeholder="Enter category description"></textarea>
+            </div>
+
+            <button type="submit" style="padding: 0.8rem 1.5rem; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.2s; width: fit-content;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(59,130,246,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">+ Add Category</button>
+        </form>
+    </div>
+
+    <!-- Existing Categories Section -->
+    <div>
+        <h2 style="font-size: 1.3rem; font-weight: 700; margin-bottom: 1rem;">Existing Categories</h2>
+        {% if categories %}
+            <div style="overflow-x: auto; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05);">
+                            <th style="padding: 1rem; text-align: left; font-weight: 600;">Name</th>
+                            <th style="padding: 1rem; text-align: left; font-weight: 600;">Description</th>
+                            <th style="padding: 1rem; text-align: center; font-weight: 600;">Providers</th>
+                            <th style="padding: 1rem; text-align: center; font-weight: 600;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <td style="padding: 1rem;">{{ category.name }}</td>
+                                <td style="padding: 1rem;">{{ category.description if category.description else '-' }}</td>
+                                <td style="padding: 1rem; text-align: center;">{{ category.providers|length }}</td>
+                                <td style="padding: 1rem; text-align: center;">
+                                    {% if category.providers|length == 0 %}
+                                        <form method="POST" action="{{ url_for('admin.delete_category', category_id=category.id) }}" style="display:inline;" onsubmit="return confirm('Delete this category?');">
+                                            <button type="submit" style="padding: 0.5rem 1rem; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(239,68,68,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">🗑️ Delete</button>
+                                        </form>
+                                    {% else %}
+                                        <span style="color: #9ca3af; font-size: 0.9rem;">Cannot delete</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 3rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                <p style="font-size: 1.1rem; color: #9ca3af;">No categories found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+=======================================================
+Deep Recovery Tool
+=======================================================
+
+[1] Attempting iterdump recovery...
+    iterdump failed: database disk image is malformed
+
+[2] Attempting PRAGMA page recovery per table...
+    users: FAILED (database disk image is malformed)
+    categories: FAILED (database disk image is malformed)
+    service_providers: FAILED (database disk image is malformed)
+    services: FAILED (database disk image is malformed)
+    reviews: FAILED (database disk image is malformed)
+    favorites: FAILED (database disk image is malformed)
+    cities: FAILED (database disk image is malformed)
+    areas: FAILED (database disk image is malformed)
+
+[3] Trying immutable URI flag...
+    users: FAILED (database disk image is malformed)
+    categories: FAILED (database disk image is malformed)
+    service_providers: FAILED (database disk image is malformed)
+    services: FAILED (database disk image is malformed)
+    reviews: FAILED (database disk image is malformed)
+    favorites: FAILED (database disk image is malformed)
+    cities: FAILED (database disk image is malformed)
+    areas: FAILED (database disk image is malformed)
+
+No data could be recovered from the backup. The file is fully corrupted.

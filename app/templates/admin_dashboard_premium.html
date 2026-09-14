@@ -1,0 +1,256 @@
+{% extends "base_premium.html" %}
+
+{% block title %}Admin Dashboard - QuickFix{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<section class="admin-dashboard">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div style="margin-bottom: 3rem; animation: fadeIn 0.8s ease;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                <i class="fas fa-chart-line"></i> Admin Dashboard
+            </h1>
+            <p style="color: rgba(240, 240, 240, 0.7);">
+                Monitor and manage your platform
+            </p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <!-- Total Providers -->
+            <div class="stat-card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--neon-purple);">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number" data-target="{{ stats.total_providers }}">0</div>
+                <div class="stat-label">Total Providers</div>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: rgba(240, 240, 240, 0.5);">
+                    <i class="fas fa-arrow-up"></i> Active on platform
+                </div>
+            </div>
+
+            <!-- Total Users -->
+            <div class="stat-card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--neon-pink);">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="stat-number" data-target="{{ stats.total_users }}">0</div>
+                <div class="stat-label">Total Users</div>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: rgba(240, 240, 240, 0.5);">
+                    <i class="fas fa-arrow-up"></i> Registered users
+                </div>
+            </div>
+
+            <!-- Approved Providers -->
+            <div class="stat-card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--neon-green);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number" data-target="{{ stats.approved_providers }}">0</div>
+                <div class="stat-label">Approved</div>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: rgba(240, 240, 240, 0.5);">
+                    <i class="fas fa-check"></i> Verified providers
+                </div>
+            </div>
+
+            <!-- Pending Providers -->
+            <div class="stat-card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem; color: var(--neon-blue);">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="stat-number" data-target="{{ stats.pending_providers }}">0</div>
+                <div class="stat-label">Pending</div>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: rgba(240, 240, 240, 0.5);">
+                    <i class="fas fa-clock"></i> Awaiting approval
+                </div>
+            </div>
+
+            <!-- Total Services -->
+            <div class="stat-card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem; color: #ec4899;">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="stat-number" data-target="{{ stats.total_services | default(0) }}">0</div>
+                <div class="stat-label">Total Services</div>
+                <div style="margin-top: 1rem; font-size: 0.85rem; color: rgba(240, 240, 240, 0.5);">
+                    <i class="fas fa-list"></i> Active services
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-top: 3rem;">
+            <!-- Provider Distribution Chart -->
+            <div class="chart-container">
+                <h3>Provider Distribution by Category</h3>
+                <canvas id="categoryChart"></canvas>
+            </div>
+
+            <!-- Status Distribution Chart -->
+            <div class="chart-container">
+                <h3>Provider Status Distribution</h3>
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div style="margin-top: 3rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+            <a href="{{ url_for('user.search') }}" class="glass-card" style="text-decoration: none; text-align: center; transition: all 0.3s ease;">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">🔍</div>
+                <h3 style="margin-bottom: 0.5rem;">Search Services</h3>
+                <p style="color: rgba(240, 240, 240, 0.7); font-size: 0.9rem;">
+                    Browse and search all services
+                </p>
+            </a>
+
+            <a href="{{ url_for('admin.approvals') }}" class="glass-card" style="text-decoration: none; text-align: center; transition: all 0.3s ease;">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">📋</div>
+                <h3 style="margin-bottom: 0.5rem;">Manage Approvals</h3>
+                <p style="color: rgba(240, 240, 240, 0.7); font-size: 0.9rem;">
+                    Review and approve pending providers
+                </p>
+            </a>
+
+            <a href="{{ url_for('admin.categories') }}" class="glass-card" style="text-decoration: none; text-align: center; transition: all 0.3s ease;">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">🏷️</div>
+                <h3 style="margin-bottom: 0.5rem;">Manage Categories</h3>
+                <p style="color: rgba(240, 240, 240, 0.7); font-size: 0.9rem;">
+                    Add or remove service categories
+                </p>
+            </a>
+
+            <a href="{{ url_for('admin.providers') }}" class="glass-card" style="text-decoration: none; text-align: center; transition: all 0.3s ease;">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">👥</div>
+                <h3 style="margin-bottom: 0.5rem;">View Providers</h3>
+                <p style="color: rgba(240, 240, 240, 0.7); font-size: 0.9rem;">
+                    See all registered providers
+                </p>
+            </a>
+
+            <a href="{{ url_for('admin.users') }}" class="glass-card" style="text-decoration: none; text-align: center; transition: all 0.3s ease;">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">👤</div>
+                <h3 style="margin-bottom: 0.5rem;">View Users</h3>
+                <p style="color: rgba(240, 240, 240, 0.7); font-size: 0.9rem;">
+                    Manage registered users
+                </p>
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Animate counter numbers
+    function animateCounter(element, target, duration = 1000) {
+        let current = 0;
+        const increment = target / (duration / 16);
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target;
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current);
+            }
+        }, 16);
+    }
+
+    // Trigger animations when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.stat-number').forEach(el => {
+            const target = parseInt(el.getAttribute('data-target')) || 0;
+            animateCounter(el, target);
+        });
+
+        // Category Distribution Chart - Using real data
+        const categoryCtx = document.getElementById('categoryChart');
+        if (categoryCtx) {
+            const categoryData = {{ stats.category_data | tojson }};
+            const labels = categoryData.map(item => item.name);
+            const data = categoryData.map(item => item.count);
+            
+            const colors = [
+                'rgba(168, 85, 247, 0.8)',
+                'rgba(236, 72, 153, 0.8)',
+                'rgba(6, 182, 212, 0.8)',
+                'rgba(16, 185, 129, 0.8)',
+                'rgba(251, 191, 36, 0.8)',
+                'rgba(59, 130, 246, 0.8)',
+                'rgba(139, 92, 246, 0.8)',
+                'rgba(236, 72, 153, 0.8)',
+                'rgba(34, 197, 94, 0.8)',
+                'rgba(6, 182, 212, 0.8)'
+            ];
+            
+            new Chart(categoryCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors.slice(0, labels.length),
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(240, 240, 240, 0.8)',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Status Distribution Chart
+        const statusCtx = document.getElementById('statusChart');
+        if (statusCtx) {
+            new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Approved', 'Pending', 'Rejected'],
+                    datasets: [{
+                        data: [{{ stats.approved_providers }}, {{ stats.pending_providers }}, 0],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(251, 191, 36, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(240, 240, 240, 0.8)',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

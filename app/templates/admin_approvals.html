@@ -1,0 +1,70 @@
+{% extends "base_saas.html" %}
+
+{% block title %}Pending Approvals - QuickFix{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 900; margin: 0;">Pending Provider Approvals</h1>
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+    </div>
+
+    {% if providers %}
+        <div style="display: grid; gap: 1.5rem;">
+            {% for provider in providers %}
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem; backdrop-filter: blur(10px); transition: all 0.3s;">
+                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: start;">
+                        <div>
+                            <h3 style="font-size: 1.3rem; font-weight: 700; margin: 0 0 1rem 0;">{{ provider.business_name }}</h3>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; font-size: 0.95rem;">
+                                <div>
+                                    <span style="color: #9ca3af; font-size: 0.85rem;">Category</span>
+                                    <p style="margin: 0.3rem 0 0 0; font-weight: 600;">{{ provider.category.name }}</p>
+                                </div>
+                                <div>
+                                    <span style="color: #9ca3af; font-size: 0.85rem;">Owner</span>
+                                    <p style="margin: 0.3rem 0 0 0; font-weight: 600;">{{ provider.user.name }}</p>
+                                </div>
+                                <div>
+                                    <span style="color: #9ca3af; font-size: 0.85rem;">Email</span>
+                                    <p style="margin: 0.3rem 0 0 0; font-weight: 600;">{{ provider.user.email }}</p>
+                                </div>
+                                <div>
+                                    <span style="color: #9ca3af; font-size: 0.85rem;">Phone</span>
+                                    <p style="margin: 0.3rem 0 0 0; font-weight: 600;">{{ provider.user.phone }}</p>
+                                </div>
+                                <div style="grid-column: 1 / -1;">
+                                    <span style="color: #9ca3af; font-size: 0.85rem;">Address</span>
+                                    <p style="margin: 0.3rem 0 0 0; font-weight: 600;">{{ provider.address }}, {{ provider.city }}</p>
+                                </div>
+                                {% if provider.description %}
+                                    <div style="grid-column: 1 / -1;">
+                                        <span style="color: #9ca3af; font-size: 0.85rem;">Description</span>
+                                        <p style="margin: 0.3rem 0 0 0; font-weight: 600;">{{ provider.description }}</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.8rem; min-width: 150px;">
+                            <form method="POST" action="{{ url_for('admin.approve', provider_id=provider.id) }}" style="display:block;">
+                                <button type="submit" style="width: 100%; padding: 0.7rem 1rem; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(34,197,94,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">✓ Approve</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin.reject', provider_id=provider.id) }}" style="display:block;">
+                                <button type="submit" style="width: 100%; padding: 0.7rem 1rem; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(245,158,11,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">✗ Reject</button>
+                            </form>
+                            <form method="POST" action="{{ url_for('admin.delete_provider', provider_id=provider.id) }}" style="display:block;" onsubmit="return confirm('Are you sure you want to delete {{ provider.business_name }}?');">
+                                <button type="submit" style="width: 100%; padding: 0.7rem 1rem; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(239,68,68,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">🗑️ Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 3rem; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+            <p style="font-size: 1.1rem; color: #9ca3af;">No pending approvals. All providers have been reviewed!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

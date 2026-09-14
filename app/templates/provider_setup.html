@@ -1,0 +1,421 @@
+{% extends "base_saas.html" %}
+
+{% block title %}{% if provider %}Edit Profile{% else %}Complete Your Profile{% endif %} - QuickFix{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0; min-height: 80vh;">
+    <div class="card" style="max-width: 700px; margin: 0 auto; padding: 2.5rem;">
+        <div class="text-center mb-4">
+            <h1 style="font-size: 2.5rem; font-weight: 900; margin-bottom: 0.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                {% if provider %}Edit Profile{% else %}Complete Your Profile{% endif %}
+            </h1>
+            <p style="color: var(--gray); font-size: 1.1rem;">
+                {% if provider %}Update your business information{% else %}Set up your service provider profile{% endif %}
+            </p>
+        </div>
+
+        <!-- Profile Photo Section -->
+        <div class="form-group text-center mb-4">
+            <div class="profile-photo-container" style="position: relative; display: inline-block; margin-bottom: 1rem;">
+                <div class="profile-photo-preview" style="
+                    width: 120px;
+                    height: 120px;
+                    border-radius: 50%;
+                    border: 4px solid var(--primary);
+                    background: var(--gray-lighter);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
+                    position: relative;
+                    box-shadow: var(--shadow-lg);
+                    transition: var(--transition);
+                ">
+                    {% if current_user.profile_image and current_user.profile_image != 'default.png' %}
+                        <img id="profilePreview" src="{{ url_for('static', filename='uploads/' + current_user.profile_image) }}" alt="Profile" style="
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        " onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'">
+                    {% else %}
+                        <img id="profilePreview" src="{{ url_for('static', filename='images/default-avatar.svg') }}" alt="Profile" style="
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        " onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'">
+                    {% endif %}
+                </div>
+                <button type="button" class="profile-photo-btn" onclick="document.getElementById('profilePhoto').click()" style="
+                    position: absolute;
+                    bottom: 0;
+                    right: 0;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: var(--gradient-primary);
+                    color: white;
+                    border: none;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    box-shadow: var(--shadow-md);
+                    transition: var(--transition);
+                ">
+                    <i class="fas fa-camera"></i>
+                </button>
+            </div>
+            <input type="file" id="profilePhoto" name="profile_image" accept="image/jpeg,image/jpg,image/png" style="display: none;">
+            <p style="font-size: 0.875rem; color: var(--gray); margin-top: 0.5rem;">
+                Click the camera icon to upload your profile photo (JPG, PNG - Max 2MB)
+            </p>
+        </div>
+
+        <form method="POST" class="form" id="providerForm" enctype="multipart/form-data">
+            <div class="grid grid-cols-1 gap-3 mb-3">
+                <div class="form-group">
+                    <label for="business_name" class="form-label">
+                        <i class="fas fa-store" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                        Business Name *
+                    </label>
+                    <input type="text" id="business_name" name="business_name" 
+                           value="{{ provider.business_name if provider else '' }}" 
+                           required class="form-input"
+                           placeholder="Enter your business name">
+                </div>
+
+                <div class="form-group">
+                    <label for="category_id" class="form-label">
+                        <i class="fas fa-tags" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                        Service Category *
+                    </label>
+                    <select id="category_id" name="category_id" required class="form-select">
+                        <option value="">Select a category...</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}" 
+                                    {% if provider and provider.category_id == category.id %}selected
+                                    {% elif not provider and prefill_data and prefill_data.service_type and (category.name.lower() == prefill_data.service_type.lower() or prefill_data.service_type.lower() in category.name.lower()) %}selected
+                                    {% endif %}>
+                                {{ category.emoji }} {{ category.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3 mb-3">
+                <div class="form-group">
+                    <label for="phone_number" class="form-label">
+                        <i class="fas fa-phone" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                        Mobile Number * (10+ digits)
+                    </label>
+                    <input type="tel" id="phone_number" name="phone_number" 
+                           value="{{ provider.phone_number if provider else (prefill_data.phone if prefill_data else '') }}" 
+                           placeholder="Enter 10+ digit phone number"
+                           required class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label for="city" class="form-label">
+                        <i class="fas fa-map-marker-alt" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                        City *
+                    </label>
+                    <input type="text" id="city" name="city" 
+                           value="{{ provider.city if provider else (prefill_data.city if prefill_data else '') }}" 
+                           required class="form-input"
+                           placeholder="Enter your city">
+                </div>
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="address" class="form-label">
+                    <i class="fas fa-home" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                    Full Address *
+                </label>
+                <input type="text" id="address" name="address" 
+                       value="{{ provider.address if provider else (prefill_data.area if prefill_data else '') }}" 
+                       required class="form-input"
+                       placeholder="Enter your complete business address">
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="working_hours" class="form-label">
+                    <i class="fas fa-clock" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                    Working Hours
+                </label>
+                <input type="text" id="working_hours" name="working_hours" 
+                       placeholder="e.g., 9AM-6PM, Mon-Sat" 
+                       value="{{ provider.working_hours if provider else '' }}" 
+                       class="form-input">
+            </div>
+
+            <div class="form-group mb-4">
+                <label for="description" class="form-label">
+                    <i class="fas fa-info-circle" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                    Business Description
+                </label>
+                <textarea id="description" name="description" rows="4" class="form-textarea" 
+                          placeholder="Tell customers about your business, services, and experience...">{{ provider.description if provider else '' }}</textarea>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg" style="min-width: 200px;">
+                    <i class="fas fa-save" style="margin-right: 0.5rem;"></i>
+                    {% if provider %}Update Profile{% else %}Complete Setup{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Profile photo preview functionality
+document.getElementById('profilePhoto').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            showNotification('File size must be less than 2MB', 'error');
+            this.value = '';
+            return;
+        }
+        
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            showNotification('Please select a valid image file (JPG, PNG)', 'error');
+            this.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById('profilePreview');
+            preview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// Upload profile photo function
+// Profile image will be uploaded with form submission
+
+// Show notification function
+function showNotification(message, type) {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(n => n.remove());
+    
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+    
+    // Click to dismiss
+    notification.addEventListener('click', () => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 300);
+    });
+}
+
+// Enhanced form validation
+document.getElementById('providerForm').addEventListener('submit', function(e) {
+    let isValid = true;
+    
+    // Reset all field styles
+    document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(field => {
+        field.classList.remove('error', 'success');
+    });
+    
+    // Validate business name
+    const businessName = document.getElementById('business_name');
+    if (businessName.value.trim().length < 2) {
+        businessName.classList.add('error');
+        showNotification('Business name must be at least 2 characters long', 'error');
+        businessName.focus();
+        isValid = false;
+    } else {
+        businessName.classList.add('success');
+    }
+    
+    // Validate category
+    const category = document.getElementById('category_id');
+    if (!category.value) {
+        category.classList.add('error');
+        if (isValid) {
+            showNotification('Please select a service category', 'error');
+            category.focus();
+        }
+        isValid = false;
+    } else {
+        category.classList.add('success');
+    }
+    
+    // Validate phone number
+    const phoneNumber = document.getElementById('phone_number');
+    const digitsOnly = phoneNumber.value.replace(/\D/g, '');
+    if (digitsOnly.length < 10) {
+        phoneNumber.classList.add('error');
+        if (isValid) {
+            showNotification('Phone number must be at least 10 digits long', 'error');
+            phoneNumber.focus();
+        }
+        isValid = false;
+    } else {
+        phoneNumber.classList.add('success');
+    }
+    
+    // Validate city
+    const city = document.getElementById('city');
+    if (city.value.trim().length < 2) {
+        city.classList.add('error');
+        if (isValid) {
+            showNotification('City name must be at least 2 characters long', 'error');
+            city.focus();
+        }
+        isValid = false;
+    } else {
+        city.classList.add('success');
+    }
+    
+    // Validate address
+    const address = document.getElementById('address');
+    if (address.value.trim().length < 10) {
+        address.classList.add('error');
+        if (isValid) {
+            showNotification('Please provide a complete address (at least 10 characters)', 'error');
+            address.focus();
+        }
+        isValid = false;
+    } else {
+        address.classList.add('success');
+    }
+    
+    if (!isValid) {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Show loading state on submit button
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnContent = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i>Saving...';
+    submitBtn.disabled = true;
+    
+    // Re-enable button after 3 seconds (in case of server error)
+    setTimeout(() => {
+        submitBtn.innerHTML = originalBtnContent;
+        submitBtn.disabled = false;
+    }, 3000);
+});
+
+// Real-time validation feedback
+document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(field => {
+    field.addEventListener('blur', function() {
+        validateField(this);
+    });
+    
+    field.addEventListener('input', function() {
+        // Remove error state on input
+        this.classList.remove('error');
+    });
+});
+
+function validateField(field) {
+    const value = field.value.trim();
+    
+    switch(field.id) {
+        case 'business_name':
+            if (value.length >= 2) {
+                field.classList.add('success');
+                field.classList.remove('error');
+            }
+            break;
+        case 'phone_number':
+            const digits = value.replace(/\D/g, '');
+            if (digits.length >= 10) {
+                field.classList.add('success');
+                field.classList.remove('error');
+            }
+            break;
+        case 'city':
+            if (value.length >= 2) {
+                field.classList.add('success');
+                field.classList.remove('error');
+            }
+            break;
+        case 'address':
+            if (value.length >= 10) {
+                field.classList.add('success');
+                field.classList.remove('error');
+            }
+            break;
+        case 'category_id':
+            if (value) {
+                field.classList.add('success');
+                field.classList.remove('error');
+            }
+            break;
+    }
+}
+
+// Add hover effects to profile photo
+const profilePreview = document.querySelector('.profile-photo-preview');
+if (profilePreview) {
+    profilePreview.addEventListener('mouseenter', function() {
+        this.style.transform = 'scale(1.05)';
+    });
+
+    profilePreview.addEventListener('mouseleave', function() {
+        this.style.transform = 'scale(1)';
+    });
+}
+
+// Phone number formatting
+document.getElementById('phone_number').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length >= 10) {
+        // Format as (XXX) XXX-XXXX for US numbers, or keep simple for international
+        if (value.length === 10) {
+            value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+        }
+    }
+    e.target.value = value;
+});
+
+// Auto-resize textarea
+const textarea = document.getElementById('description');
+if (textarea) {
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+}
+
+// Add loading animation to form on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const formGroups = document.querySelectorAll('.form-group');
+    formGroups.forEach((group, index) => {
+        group.style.opacity = '0';
+        group.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            group.style.transition = 'all 0.6s ease';
+            group.style.opacity = '1';
+            group.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

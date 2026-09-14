@@ -1,0 +1,68 @@
+{% extends "base_saas.html" %}
+
+{% block title %}Add Service - QuickFix{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 0; min-height: 80vh;">
+    <div class="card" style="max-width: 600px; margin: 0 auto; padding: 2rem;">
+        <div class="text-center mb-4">
+            <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--dark);">Add New Service</h1>
+            <p style="color: var(--gray);">Add a new service to your business profile</p>
+        </div>
+
+        <form method="POST" class="form">
+            <div class="form-group">
+                <label for="category" class="form-label">
+                    <i class="fas fa-tags" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                    Service Category *
+                </label>
+                <select name="category" id="category" required class="form-select">
+                    <option value="">Select Category</option>
+                    <option value="Plumber">Plumber</option>
+                    <option value="Electrician">Electrician</option>
+                    <option value="Carpenter">Carpenter</option>
+                    <option value="Painter">Painter</option>
+                    <option value="AC Repair">AC Repair</option>
+                    <option value="Cleaning">Cleaning</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="name" class="form-label">
+                    <i class="fas fa-concierge-bell" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                    Service Name *
+                </label>
+                <input type="text" id="name" name="name" required class="form-input" placeholder="Enter service name">
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">
+                    <i class="fas fa-info-circle" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                    Description
+                </label>
+                <textarea id="description" name="description" rows="5" class="form-textarea" placeholder="Describe your service..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="price" class="form-label">
+                    <i class="fas fa-tag" style="margin-right: 0.5rem; color: var(--primary);"></i>
+                    Price
+                </label>
+                <input type="text" id="price" name="price" placeholder="e.g., 500-1000 PKR" class="form-input">
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-plus" style="margin-right: 0.5rem;"></i>
+                    Add Service
+                </button>
+                <a href="{{ url_for('provider.dashboard') }}" class="btn btn-outline" style="flex: 1; text-align: center; text-decoration: none;">
+                    <i class="fas fa-times" style="margin-right: 0.5rem;"></i>
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

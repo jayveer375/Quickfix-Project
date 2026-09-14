@@ -1,0 +1,414 @@
+{% extends "base_saas.html" %}
+
+{% block title %}Search Services - QuickFix{% endblock %}
+
+{% block extra_css %}
+<style>
+    @keyframes pulse-green {
+        0%, 100% {
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3), 0 2px 4px -1px rgba(16, 185, 129, 0.2), 0 0 0 0 rgba(16, 185, 129, 0.7);
+        }
+        50% {
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3), 0 2px 4px -1px rgba(16, 185, 129, 0.2), 0 0 0 8px rgba(16, 185, 129, 0);
+        }
+    }
+    
+    .badge-open:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px -2px rgba(16, 185, 129, 0.4), 0 4px 8px -2px rgba(16, 185, 129, 0.3) !important;
+        transition: all 0.3s ease;
+    }
+    
+    .badge-closed:hover,
+    .badge-pending:hover,
+    .badge-popular:hover {
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+    }
+
+    /* Dark mode support for search section */
+    body.dark-mode section {
+        background: var(--dark-bg) !important;
+    }
+
+    /* Responsive filter grid */
+    @media (max-width: 768px) {
+        .filters-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .filters-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<section style="padding: 2rem; background: var(--light);">
+    <div class="container">
+        <!-- Search Header -->
+        <div style="margin-bottom: 2rem; animation: fadeIn 0.8s ease;">
+            <h1 style="font-size: 2rem; font-weight: 900; margin-bottom: 0.5rem; color: var(--dark);">Find Your Perfect Service Provider</h1>
+            <p style="color: var(--gray);">Browse through our verified providers and find exactly what you need</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-select category-filter" onchange="updateFilters('category', this.value)">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if request.args.get('category') == category.id|string %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">City</label>
+                <select class="form-select city-filter" id="citySelect" onchange="loadAreas(this.value); updateFilters('city', this.value);">
+                    <option value="">All Cities</option>
+                    {% for city in cities %}
+                        <option value="{{ city.name }}" {% if request.args.get('city') == city.name %}selected{% endif %}>
+                            {{ city.name }}{% if city.state %}, {{ city.state }}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Area</label>
+                <select class="form-select area-filter" id="areaSelect" onchange="updateFilters('area', this.value)">
+                    <option value="">All Areas</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Sort By</label>
+                <select class="form-select sort-filter" onchange="updateFilters('sort', this.value)">
+                    <option value="rating" {% if sort_by == 'rating' %}selected{% endif %}>Highest Rating</option>
+                    <option value="reviews" {% if sort_by == 'reviews' %}selected{% endif %}>Most Reviews</option>
+                    <option value="low_price" {% if sort_by == 'low_price' %}selected{% endif %}>Lowest Price</option>
+                    <option value="high_price" {% if sort_by == 'high_price' %}selected{% endif %}>Highest Price</option>
+                </select>
+            </div>
+        </div>
+
+        <script>
+        function loadAreas(cityName) {
+            const areaSelect = document.getElementById('areaSelect');
+            
+            if (!cityName) {
+                areaSelect.innerHTML = '<option value="">All Areas</option>';
+                return;
+            }
+            
+            // Show loading
+            areaSelect.innerHTML = '<option value="">Loading areas...</option>';
+            
+            // Find city ID by name
+            fetch('/admin/api/cities')
+                .then(response => response.json())
+                .then(cities => {
+                    const city = cities.find(c => c.name === cityName);
+                    if (city) {
+                        return fetch(`/admin/api/areas/${city.id}`);
+                    } else {
+                        throw new Error('City not found');
+                    }
+                })
+                .then(response => response.json())
+                .then(areas => {
+                    let options = '<option value="">All Areas</option>';
+                    areas.forEach(area => {
+                        const selected = '{{ request.args.get("area") }}' === area.name ? 'selected' : '';
+                        options += `<option value="${area.name}" ${selected}>${area.name}</option>`;
+                    });
+                    areaSelect.innerHTML = options;
+                })
+                .catch(error => {
+                    console.error('Error loading areas:', error);
+                    areaSelect.innerHTML = '<option value="">All Areas</option>';
+                });
+        }
+
+        function updateFilters(param, value) {
+            const url = new URL(window.location);
+            if (value) {
+                url.searchParams.set(param, value);
+            } else {
+                url.searchParams.delete(param);
+            }
+            
+            // If changing city, clear area filter
+            if (param === 'city') {
+                url.searchParams.delete('area');
+            }
+            
+            window.location.href = url.toString();
+        }
+
+        // Load areas on page load if city is selected
+        document.addEventListener('DOMContentLoaded', function() {
+            const citySelect = document.getElementById('citySelect');
+            if (citySelect.value) {
+                loadAreas(citySelect.value);
+            }
+        });
+        </script>
+
+        <!-- Providers Grid -->
+        {% if providers %}
+            <div class="providers-grid grid grid-cols-1 gap-3" style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));">
+                {% for provider in providers %}
+                    <div class="provider-card" 
+                         data-rating="{{ provider.get_average_rating() }}" 
+                         data-calls="{{ provider.total_calls }}"
+                         data-city="{{ provider.city }}"
+                         data-created="{{ provider.created_at.isoformat() }}"
+                         data-lat="{{ provider.latitude or 0 }}"
+                         data-lng="{{ provider.longitude or 0 }}">
+                        
+                        <div class="provider-card-content">
+                            <!-- Profile Image -->
+                            <div class="provider-profile-image" style="
+                                width: 60px;
+                                height: 60px;
+                                border-radius: 50%;
+                                border: 3px solid var(--primary);
+                                overflow: hidden;
+                                margin: 0 auto 1rem;
+                                box-shadow: var(--shadow-md);
+                            ">
+                                <img src="{{ provider.user.get_profile_image_url() }}" alt="{{ provider.business_name }}" style="
+                                    width: 100%;
+                                    height: 100%;
+                                    object-fit: cover;
+                                " onerror="this.src='{{ url_for('static', filename='images/default-avatar.svg') }}'">
+                            </div>
+
+                            <!-- Category Emoji -->
+                            <div class="provider-emoji">
+                                {% if provider.category.name == 'Hospital' %}🏥
+                                {% elif provider.category.name == 'Ambulance' %}🚑
+                                {% elif provider.category.name == 'Police' %}👮
+                                {% elif provider.category.name == 'Fire Department' %}🚒
+                                {% elif provider.category.name == 'Electrician' %}⚡
+                                {% elif provider.category.name == 'Plumber' %}🔧
+                                {% elif provider.category.name == 'Mechanic' %}🛠️
+                                {% elif provider.category.name == 'Tutor' %}📚
+                                {% elif provider.category.name == 'Pharmacy' %}💊
+                                {% elif provider.category.name == 'Cleaner' %}🧹
+                                {% else %}⭐
+                                {% endif %}
+                            </div>
+
+                            <!-- Provider Name -->
+                            <h3 class="provider-name">{{ provider.business_name }}</h3>
+
+                            <!-- Category Badge -->
+                            <div style="margin-bottom: 0.75rem;">
+                                <span style="
+                                    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                                    color: white;
+                                    padding: 0.35rem 0.85rem;
+                                    border-radius: 50px;
+                                    font-size: 0.8rem;
+                                    font-weight: 600;
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 0.4rem;
+                                    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+                                ">
+                                    <i class="fas fa-tag" style="font-size: 0.7rem;"></i>
+                                    {{ provider.category.name }}
+                                </span>
+                            </div>
+
+                            <!-- Area & City -->
+                            <p class="provider-city">
+                                <i class="fas fa-map-marker-alt"></i> 
+                                {{ provider.user.area or 'Location not specified' }}
+                            </p>
+
+                            <!-- Badges -->
+                            <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; justify-content: flex-start;">
+                                {% if provider.status == 'approved' %}
+                                    {% if provider.is_open %}
+                                        <span class="badge badge-open" style="
+                                            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                                            color: white;
+                                            padding: 0.5rem 1rem;
+                                            border-radius: 50px;
+                                            font-size: 0.875rem;
+                                            font-weight: 600;
+                                            display: inline-flex;
+                                            align-items: center;
+                                            gap: 0.5rem;
+                                            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3), 0 2px 4px -1px rgba(16, 185, 129, 0.2);
+                                            border: 2px solid rgba(255, 255, 255, 0.3);
+                                            animation: pulse-green 2s ease-in-out infinite;
+                                        ">
+                                            <span style="
+                                                width: 8px;
+                                                height: 8px;
+                                                background: white;
+                                                border-radius: 50%;
+                                                display: inline-block;
+                                                box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+                                            "></span>
+                                            Open
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-closed" style="
+                                            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                                            color: white;
+                                            padding: 0.5rem 1rem;
+                                            border-radius: 50px;
+                                            font-size: 0.875rem;
+                                            font-weight: 600;
+                                            display: inline-flex;
+                                            align-items: center;
+                                            gap: 0.5rem;
+                                            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3), 0 2px 4px -1px rgba(239, 68, 68, 0.2);
+                                            border: 2px solid rgba(255, 255, 255, 0.3);
+                                        ">
+                                            <span style="
+                                                width: 8px;
+                                                height: 8px;
+                                                background: white;
+                                                border-radius: 50%;
+                                                display: inline-block;
+                                            "></span>
+                                            Closed
+                                        </span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge badge-pending" style="
+                                        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                                        color: white;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: 50px;
+                                        font-size: 0.875rem;
+                                        font-weight: 600;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 0.5rem;
+                                        box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.3), 0 2px 4px -1px rgba(245, 158, 11, 0.2);
+                                        border: 2px solid rgba(255, 255, 255, 0.3);
+                                    ">⏳ Pending</span>
+                                {% endif %}
+                                
+                                {% if provider.total_calls > 20 %}
+                                    <span class="badge badge-popular" style="
+                                        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+                                        color: white;
+                                        padding: 0.5rem 1rem;
+                                        border-radius: 50px;
+                                        font-size: 0.875rem;
+                                        font-weight: 600;
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 0.5rem;
+                                        box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.3), 0 2px 4px -1px rgba(249, 115, 22, 0.2);
+                                        border: 2px solid rgba(255, 255, 255, 0.3);
+                                    ">🔥 Popular</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Services Offered -->
+                            {% if provider.services %}
+                            <div style="margin: 0.75rem 0;">
+                                <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 0.4rem; font-weight: 600;">
+                                    <i class="fas fa-briefcase" style="margin-right: 0.25rem;"></i>Services:
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                                    {% for service in provider.services[:3] %}
+                                    <span style="
+                                        background: rgba(99, 102, 241, 0.1);
+                                        color: #6366f1;
+                                        padding: 0.25rem 0.6rem;
+                                        border-radius: 50px;
+                                        font-size: 0.7rem;
+                                        font-weight: 500;
+                                        border: 1px solid rgba(99, 102, 241, 0.2);
+                                    ">{{ service.name }}</span>
+                                    {% endfor %}
+                                    {% if provider.services|length > 3 %}
+                                    <span style="
+                                        background: rgba(107, 114, 128, 0.1);
+                                        color: #6b7280;
+                                        padding: 0.25rem 0.6rem;
+                                        border-radius: 50px;
+                                        font-size: 0.7rem;
+                                        font-weight: 500;
+                                    ">+{{ provider.services|length - 3 }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Rating & Stats -->
+                            <div style="margin: 0.75rem 0; padding: 0.75rem; background: rgba(99, 102, 241, 0.05); border-radius: 10px;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                    <div style="color: #fbbf24; font-size: 1rem;">
+                                        {% set rating = provider.get_average_rating() %}
+                                        {% for i in range(5) %}
+                                            {% if i < rating|int %}
+                                                <i class="fas fa-star"></i>
+                                            {% elif i < rating %}
+                                                <i class="fas fa-star-half-alt"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <span style="font-weight: 600; color: #1f2937;">{{ provider.get_average_rating() }}</span>
+                                    <span style="color: #6b7280; font-size: 0.85rem;">({{ provider.total_reviews }} reviews)</span>
+                                </div>
+                                <div style="display: flex; gap: 1rem; font-size: 0.85rem; color: #6b7280;">
+                                    <div><i class="fas fa-phone"></i> {{ provider.total_calls }} calls</div>
+                                    <div><i class="fas fa-check-circle"></i> {% if provider.is_available %}Available{% else %}Busy{% endif %}</div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="provider-actions" style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <a href="{{ url_for('user.provider_profile', provider_id=provider.id) }}" class="btn" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; border: none;">
+                                    <i class="fas fa-user"></i> View Profile
+                                </a>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <a href="tel:{{ provider.phone_number }}" class="btn btn-primary call-btn" data-provider-id="{{ provider.id }}" style="flex: 1;">
+                                        <i class="fas fa-phone"></i> Call
+                                    </a>
+                                    <a href="https://wa.me/{{ provider.phone_number|whatsapp_format }}?text=Hello%2C%20*I%20saw%20your%20ad%20on%20QuickFix%20site*%0A%0AI%20am%20interested%20in%20your%20services." target="_blank" class="btn btn-whatsapp" style="flex: 1; background: #25D366; color: white; border: none;">
+                                        <i class="fab fa-whatsapp"></i> WhatsApp
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 4rem 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">No providers found</h3>
+                <p style="color: #6b7280; margin-bottom: 2rem;">
+                    Try adjusting your search filters or browse all providers
+                </p>
+                <a href="{{ url_for('user.search') }}" class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Clear Filters
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

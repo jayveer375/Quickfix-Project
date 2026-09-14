@@ -1,0 +1,167 @@
+{% extends "base_saas.html" %}
+
+{% block title %}QuickFix - Find Services Near You{% endblock %}
+
+{% block content %}
+
+<!-- Hero Section -->
+<section class="hero">
+    <!-- Background Image Slider -->
+    <div class="hero-bg-slider">
+        <div class="hero-bg-slide active" style="background-image: url('{{ url_for('static', filename='uploads/img0.jpg') }}');"></div>
+        <div class="hero-bg-slide" style="background-image: url('{{ url_for('static', filename='uploads/img1.jpg') }}');"></div>
+        <div class="hero-bg-slide" style="background-image: url('{{ url_for('static', filename='uploads/img3.jpg') }}');"></div>
+        <div class="hero-bg-slide" style="background-image: url('{{ url_for('static', filename='uploads/img4.jpg') }}');"></div>
+    </div>
+
+    <div class="hero-content">
+        <h1>Find Premium Services Instantly</h1>
+        <p>Connect with verified service providers in your area. Fast, reliable, and always available.</p>
+        
+        <div class="hero-buttons">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('user.search') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search"></i> Explore Services
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search"></i> Explore Services
+                </a>
+            {% endif %}
+            {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.register_provider') }}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-user-plus"></i> Become a Provider
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<script>
+    // Background Image Slider
+    document.addEventListener('DOMContentLoaded', function() {
+        const slides = document.querySelectorAll('.hero-bg-slide');
+        let currentSlide = 0;
+
+        function nextSlide() {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (currentSlide + 1) % slides.length;
+            slides[currentSlide].classList.add('active');
+        }
+
+        // Change slide every 2.5 seconds
+        setInterval(nextSlide, 2500);
+    });
+</script>
+
+<!-- Features Section -->
+<section style="padding: 4rem 2rem; background: white;">
+    <div class="container">
+        <h2 style="text-align: center; font-size: 2rem; font-weight: 900; margin-bottom: 3rem;">Why Choose QuickFix?</h2>
+        
+        <div class="grid grid-cols-1 gap-3" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+            <!-- Feature 1 -->
+            <div class="card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">⚡</div>
+                <h3 class="card-title">Lightning Fast</h3>
+                <p style="color: #6b7280; margin-top: 0.5rem;">Find and connect with service providers in seconds, not hours.</p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">✓</div>
+                <h3 class="card-title">Verified Providers</h3>
+                <p style="color: #6b7280; margin-top: 0.5rem;">All providers are verified and rated by real customers.</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">🛡️</div>
+                <h3 class="card-title">Secure & Safe</h3>
+                <p style="color: #6b7280; margin-top: 0.5rem;">Your data is protected with enterprise-grade security.</p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">🌍</div>
+                <h3 class="card-title">Available 24/7</h3>
+                <p style="color: #6b7280; margin-top: 0.5rem;">Access services anytime, anywhere, on any device.</p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">⭐</div>
+                <h3 class="card-title">Top Rated</h3>
+                <p style="color: #6b7280; margin-top: 0.5rem;">Only the best providers make it to our platform.</p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="card">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">💬</div>
+                <h3 class="card-title">Real Reviews</h3>
+                <p style="color: #6b7280; margin-top: 0.5rem;">Read honest reviews from verified customers.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section style="padding: 4rem 2rem; background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);">
+    <div class="container">
+        <h2 style="text-align: center; font-size: 2rem; font-weight: 900; margin-bottom: 3rem;">By The Numbers</h2>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number" data-target="100">0</div>
+                <div class="stat-label">Active Providers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🏷️</div>
+                <div class="stat-number" data-target="10">0</div>
+                <div class="stat-label">Service Categories</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-number" data-target="359">0</div>
+                <div class="stat-label">Customer Reviews</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📞</div>
+                <div class="stat-number" data-target="1000">0</div>
+                <div class="stat-label">Total Calls</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section style="padding: 4rem 2rem; background: white;">
+    <div class="container" style="text-align: center;">
+        <h2 style="font-size: 2rem; font-weight: 900; margin-bottom: 1rem; background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            Ready to Get Started?
+        </h2>
+        <p style="font-size: 1.1rem; color: #6b7280; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+            Join thousands of satisfied customers who trust QuickFix for their service needs.
+        </p>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('user.search') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search"></i> Browse Services
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search"></i> Browse Services
+                </a>
+            {% endif %}
+            {% if not current_user.is_authenticated %}
+                <a href="{{ url_for('auth.register_provider') }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-user-plus"></i> Become a Provider
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

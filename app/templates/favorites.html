@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}My Favorites - Emergency & Service Finder{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>My Favorite Services</h1>
+
+    {% if providers %}
+        <div class="services-grid">
+            {% for provider in providers %}
+                <div class="service-card">
+                    {% if provider.image_url %}
+                        <img src="{{ provider.image_url }}" alt="{{ provider.business_name }}" class="service-image">
+                    {% else %}
+                        <div class="service-image-placeholder">📷</div>
+                    {% endif %}
+                    
+                    <div class="service-info">
+                        <h3>{{ provider.business_name }}</h3>
+                        <p class="category">{{ provider.category.name }}</p>
+                        <p class="address">📍 {{ provider.address }}</p>
+                        <p class="city">{{ provider.city }}</p>
+                        
+                        <div class="rating">
+                            ⭐ {{ provider.get_average_rating() }} 
+                            ({{ provider.reviews|length }} reviews)
+                        </div>
+
+                        <div class="status">
+                            {% if provider.is_available %}
+                                <span class="badge-open">🟢 Open</span>
+                            {% else %}
+                                <span class="badge-closed">🔴 Closed</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="service-actions">
+                            <a href="{{ url_for('user.service_detail', provider_id=provider.id) }}" 
+                               class="btn-secondary">View Details</a>
+                            <a href="tel:{{ provider.user.phone }}" class="btn-primary">📞 Call</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-results">
+            <p>You haven't added any favorites yet.</p>
+            <a href="{{ url_for('user.search') }}" class="btn-primary">Search Services</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
